@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  employeeId    String?   @unique
+  phone         String?
+  role          String    // "ADMIN", "TRAINER", "PROGRAM_HEAD"
+  status        String    @default("ACTIVE") // "ACTIVE", "INACTIVE"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  mappings      UserMapping[]
+  classRecords  ClassRecord[] @relation("TrainerClassRecords")
+  verifiedRecords ClassRecord[] @relation("ProgramHeadVerifiedRecords")
+  auditLogs     AuditLog[]
+}
+
+model Campus {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  location    String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  batches     Batch[]
+  mappings    UserMapping[]
+  classRecords ClassRecord[]
+}
+
+model Program {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  description String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  batches     Batch[]
+  semesters   Semester[]
+  modules     Module[]
+  mappings    UserMapping[]
+  classRecords ClassRecord[]
+}
+
+model Batch {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  academicYear String
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id])
+
+  mappings    UserMapping[]
+  classRecords ClassRecord[]
+}
+
+model Semester {
+  id          String   @id @default(uuid())
+  name        String
+  number      Int
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id])
+
+  modules     Module[]
+  classRecords ClassRecord[]
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  name        String
+  number      Int
+  description String?
+  displayOrder Int      @default(0)
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  semesterId  String
+  semester    Semester @relation(fields: [semesterId], references: [id])
+
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id])
+
+  topics      Topic[]
+  classRecords ClassRecord[]
+}
+
+model Topic {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  displayOrder   Int      @default(0)
+  estimatedHours Float    @default(1.0)
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  moduleId       String
+  module         Module   @relation(fields: [moduleId], references: [id])
+
+  classRecords   ClassRecord[]
+}
+
+model UserMapping {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id])
+  
+  batchId     String
+  batch       Batch    @relation(fields: [batchId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, campusId, programId, batchId])
+}
+
+model ClassRecord {
+  id                String   @id @default(uuid())
+  date              DateTime
+  classTitle        String
+  topicsCovered     String
+  classSummary      String
+  keyConcepts       String
+  practicalActivity String?
+  trainerRemarks    String?
+  hoursTaken        Float
+  totalStudents     Int
+  studentsPresent   Int
+  attendancePercent Float
+  topicStatus       String   // "PENDING", "IN_PROGRESS", "DONE"
+  verificationStatus String  @default("PENDING") // "PENDING", "VERIFIED", "REJECTED"
+  verificationComment String?
+
+  campusId          String
+  campus            Campus   @relation(fields: [campusId], references: [id])
+  
+  programId         String
+  program           Program  @relation(fields: [programId], references: [id])
+  
+  batchId           String
+  batch             Batch    @relation(fields: [batchId], references: [id])
+  
+  semesterId        String
+  semester          Semester @relation(fields: [semesterId], references: [id])
+  
+  moduleId          String
+  module            Module   @relation(fields: [moduleId], references: [id])
+  
+  topicId           String
+  topic             Topic    @relation(fields: [topicId], references: [id])
+  
+  trainerId         String
+  trainer           User     @relation("TrainerClassRecords", fields: [trainerId], references: [id])
+
+  programHeadId     String?
+  programHead       User?    @relation("ProgramHeadVerifiedRecords", fields: [programHeadId], references: [id])
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String
+  entity      String
+  entityId    String?
+  description String
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   // Target user
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  link        String?
+  createdAt   DateTime @default(now())
+}
