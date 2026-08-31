@@ -141,7 +141,6 @@ async function main() {
   });
 
   // Mappings
-  // Trainer -> Noida -> BCA -> BCA-2026-A
   await prisma.userMapping.upsert({
     where: {
       userId_campusId_programId_batchId: {
@@ -160,7 +159,6 @@ async function main() {
     },
   });
 
-  // Program Head -> Noida -> BCA -> BCA-2026-A
   await prisma.userMapping.upsert({
     where: {
       userId_campusId_programId_batchId: {
@@ -179,74 +177,74 @@ async function main() {
     },
   });
 
-  // Semesters
-  const semester1 = await prisma.semester.create({
-    data: {
-      name: "Semester 1",
-      number: 1,
-      programId: bcaProgram.id,
-    },
-  });
+  // Only seed additional data if semesters don't exist
+  const existingSemesters = await prisma.semester.count();
+  if (existingSemesters === 0) {
+    const semester1 = await prisma.semester.create({
+      data: {
+        name: "Semester 1",
+        number: 1,
+        programId: bcaProgram.id,
+      },
+    });
 
-  // Modules
-  const module1 = await prisma.module.create({
-    data: {
-      name: "Programming in C",
-      number: 1,
-      description: "Basics of C programming",
-      semesterId: semester1.id,
-      programId: bcaProgram.id,
-    },
-  });
+    const module1 = await prisma.module.create({
+      data: {
+        name: "Programming in C",
+        number: 1,
+        description: "Basics of C programming",
+        semesterId: semester1.id,
+        programId: bcaProgram.id,
+      },
+    });
 
-  // Topics
-  const topic1 = await prisma.topic.create({
-    data: {
-      name: "Introduction to C",
-      description: "History and structure of C program",
-      displayOrder: 1,
-      estimatedHours: 2.0,
-      moduleId: module1.id,
-    },
-  });
+    const topic1 = await prisma.topic.create({
+      data: {
+        name: "Introduction to C",
+        description: "History and structure of C program",
+        displayOrder: 1,
+        estimatedHours: 2.0,
+        moduleId: module1.id,
+      },
+    });
 
-  const topic2 = await prisma.topic.create({
-    data: {
-      name: "Variables and Data Types",
-      description: "Basic types in C",
-      displayOrder: 2,
-      estimatedHours: 3.0,
-      moduleId: module1.id,
-    },
-  });
+    const topic2 = await prisma.topic.create({
+      data: {
+        name: "Variables and Data Types",
+        description: "Basic types in C",
+        displayOrder: 2,
+        estimatedHours: 3.0,
+        moduleId: module1.id,
+      },
+    });
 
-  // Class Record
-  await prisma.classRecord.create({
-    data: {
-      date: new Date("2026-08-20T10:00:00.000Z"),
-      classTitle: "First Session C Programming",
-      topicsCovered: "Introduction to C",
-      classSummary: "Covered the history and basic structure.",
-      keyConcepts: "main function, #include",
-      practicalActivity: "Hello World program",
-      trainerRemarks: "Good batch",
-      hoursTaken: 1.5,
-      totalStudents: 40,
-      studentsPresent: 38,
-      attendancePercent: (38 / 40) * 100,
-      topicStatus: "IN_PROGRESS",
-      verificationStatus: "VERIFIED",
-      verificationComment: "Looks good",
-      campusId: noidaCampus.id,
-      programId: bcaProgram.id,
-      batchId: bcaBatch.id,
-      semesterId: semester1.id,
-      moduleId: module1.id,
-      topicId: topic1.id,
-      trainerId: trainer.id,
-      programHeadId: programHead.id,
-    },
-  });
+    await prisma.classRecord.create({
+      data: {
+        date: new Date("2026-08-20T10:00:00.000Z"),
+        classTitle: "First Session C Programming",
+        topicsCovered: "Introduction to C",
+        classSummary: "Covered the history and basic structure.",
+        keyConcepts: "main function, #include",
+        practicalActivity: "Hello World program",
+        trainerRemarks: "Good batch",
+        hoursTaken: 1.5,
+        totalStudents: 40,
+        studentsPresent: 38,
+        attendancePercent: (38 / 40) * 100,
+        topicStatus: "IN_PROGRESS",
+        verificationStatus: "VERIFIED",
+        verificationComment: "Looks good",
+        campusId: noidaCampus.id,
+        programId: bcaProgram.id,
+        batchId: bcaBatch.id,
+        semesterId: semester1.id,
+        moduleId: module1.id,
+        topicId: topic1.id,
+        trainerId: trainer.id,
+        programHeadId: programHead.id,
+      },
+    });
+  }
 
   console.log("Seeding complete.");
 }
