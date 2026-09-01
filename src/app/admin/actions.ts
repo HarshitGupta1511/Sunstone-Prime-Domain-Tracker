@@ -10,7 +10,9 @@ export async function addCampus(formData: FormData) {
   const location = formData.get("location") as string;
   const status = formData.get("status") as string || "ACTIVE";
 
-  if (!name || !code) return { error: "Name and Code are required" };
+  if (!name || !code) {
+    throw new Error("Name and Code are required");
+  }
 
   try {
     await prisma.campus.create({
@@ -22,10 +24,9 @@ export async function addCampus(formData: FormData) {
       },
     });
     revalidatePath("/admin/campuses");
-    return { success: true };
   } catch (error: any) {
     console.error("Error creating campus:", error);
-    return { error: error.message || "Failed to create campus" };
+    throw error;
   }
 }
 
@@ -37,7 +38,9 @@ export async function addUser(formData: FormData) {
   const phone = formData.get("phone") as string;
   const status = formData.get("status") as string || "ACTIVE";
 
-  if (!name || !email || !role) return { error: "Name, Email, and Role are required" };
+  if (!name || !email || !role) {
+    throw new Error("Name, Email, and Role are required");
+  }
 
   try {
     // Generate a default password for new users
@@ -56,10 +59,9 @@ export async function addUser(formData: FormData) {
       },
     });
     revalidatePath("/admin/users");
-    return { success: true };
   } catch (error: any) {
     console.error("Error creating user:", error);
-    return { error: error.message || "Failed to create user" };
+    throw error;
   }
 }
 
@@ -69,7 +71,9 @@ export async function addProgram(formData: FormData) {
   const description = formData.get("description") as string;
   const status = formData.get("status") as string || "ACTIVE";
 
-  if (!name || !code) return { error: "Name and Code are required" };
+  if (!name || !code) {
+    throw new Error("Name and Code are required");
+  }
 
   try {
     await prisma.program.create({
@@ -81,9 +85,8 @@ export async function addProgram(formData: FormData) {
       },
     });
     revalidatePath("/admin/programs");
-    return { success: true };
   } catch (error: any) {
     console.error("Error creating program:", error);
-    return { error: error.message || "Failed to create program" };
+    throw error;
   }
 }
