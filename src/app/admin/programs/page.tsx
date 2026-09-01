@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import prisma from "@/lib/prisma";
 import { addProgram } from "../actions";
 import { GraduationCap } from "lucide-react";

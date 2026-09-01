@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import prisma from "@/lib/prisma";
 import { addCampus } from "../actions";
 import { Building2 } from "lucide-react";
